@@ -228,8 +228,8 @@
                 <option value="Meeting">Meeting</option>
                 <option value="Workshop">Workshop</option>
             </select>
-            <label for="lecturerName">Lecturer/Host Name</label>
-            <input type="text" id="lecturerName" placeholder="Enter name">
+            <label for="lecturer">Lecturer/Host Name</label>
+            <input type="text" id="lecturer" placeholder="Enter name">
             <label for="eventLink">Event Link</label>
             <input type="url" id="eventLink" placeholder="Enter link">
             <button onclick="saveEvent()">Save Event</button>
@@ -297,13 +297,13 @@
 
         function saveEvent() {
             const eventType = document.getElementById("eventType").value;
-            const lecturerName = document.getElementById("lecturerName").value;
+            const lecturer = document.getElementById("lecturer").value;
             const eventLink = document.getElementById("eventLink").value;
 
             const eventSquare = document.createElement("div");
             eventSquare.classList.add("event-square");
             eventSquare.textContent = selectedDay.children.length;
-            eventSquare.onclick = (e) => showTaskDetails(eventType, lecturerName, eventLink);
+            eventSquare.onclick = (e) => showTaskDetails(eventType, lecturer, eventLink);
             
             selectedDay.appendChild(eventSquare);
             closeModal();
