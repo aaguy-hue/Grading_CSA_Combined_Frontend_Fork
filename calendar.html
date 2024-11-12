@@ -232,7 +232,7 @@
             <input type="text" id="lecturerName" placeholder="Enter name">
             <label for="eventLink">Event Link</label>
             <input type="url" id="eventLink" placeholder="Enter link">
-            <button onclick="saveEvent()">Save Event</button>
+            <button type="submit" id="saveEventBtn">Save Event</button>
         </div>
     </div>
 
@@ -252,6 +252,18 @@
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let selectedDay;
+
+        document.getElementById("saveEventBtn").addEventListener("click", () => {
+            const day = selectedDay.children[0].textContent;
+            const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            saveEvent({
+                type: document.getElementById("eventType").value,
+                lecturer: document.getElementById("lecturerName").value,
+                eventLink: document.getElementById("eventLink").value,
+                date: formattedDate
+            });
+        });
 
         function updateCalendar() {
             const monthYearElement = document.getElementById("monthYear");
@@ -337,7 +349,7 @@
 
         async function saveEvent(eventData) {
             try {
-                const response = await fetch("http://localhost:8080/api/events/add", {
+                const response = await fetch("http://localhost:8085/api/events/add", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
