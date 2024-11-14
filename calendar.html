@@ -251,15 +251,14 @@
         const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
-        let selectedDay;
+        var selectedDay = null;
 
         document.getElementById("saveEventBtn").addEventListener("click", () => {
-            const day = selectedDay.children[0].textContent;
-            const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const formattedDate = selectedDay.id;
 
             saveEvent({
-                type: document.getElementById("eventType").value,
-                lecturer: document.getElementById("lecturerName").value,
+                type: document.getElementById("type").value,
+                lecturer: document.getElementById("lecturer").value,
                 eventLink: document.getElementById("eventLink").value,
                 date: formattedDate
             });
@@ -291,8 +290,33 @@
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayElement = document.createElement("div");
                 dayElement.classList.add("day");
+                dayElement.id = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 dayElement.innerHTML = `<span class="day-number">${day}</span>`;
                 dayElement.onclick = () => openModal(dayElement);
+
+                const eventsForToday = fetch("skibidi");
+                for (i = 0; i < eventsForToday.length; i++) {
+                    const eventData = eventsForToday[i];
+                    if (eventData.date === dayElement.id) {
+                        const eventSquare = document.createElement("div");
+                        eventSquare.classList.add("event-square");
+                        eventSquare.style.backgroundColor = "#4CAF50";
+                        eventSquare.textContent = eventData.type;
+                        
+                        eventSquare.onclick = (e) => {
+                            e.stopPropagation();
+                            showTaskDetails(eventData.type, eventData.lecturer, eventData.eventLink);
+                        };
+
+                        dayElement.appendChild(eventSquare);
+                    }
+                }
+
+                eventSquare.onclick = (e) => {
+                    e.stopPropagation();
+                    showTaskDetails(eventData.type, eventData.lecturer, eventData.eventLink);
+                };
+
                 monthGrid.appendChild(dayElement);
             }
         }
@@ -307,19 +331,44 @@
             document.getElementById("taskModal").style.display = "none";
         }
 
-        function saveEvent() {
-            const type = document.getElementById("type").value;
-            const lecturer = document.getElementById("lecturer").value;
-            const eventLink = document.getElementById("eventLink").value;
-
-            const eventSquare = document.createElement("div");
-            eventSquare.classList.add("event-square");
-            eventSquare.textContent = selectedDay.children.length;
-            eventSquare.onclick = (e) => showTaskDetails(type, lecturer, eventLink);
-            
-            selectedDay.appendChild(eventSquare);
-            closeModal();
+        function saveEvent(eventData) {
+            fetch("http://localhost:8085/api/events/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Event saved successfully");
+                    
+                    const eventSquare = document.createElement("div");
+                    eventSquare.classList.add("event-square");
+                    eventSquare.style.backgroundColor = "#4CAF50";
+                    eventSquare.textContent = eventData.type;
+                    
+                    eventSquare.onclick = (e) => {
+                        e.stopPropagation();
+                        showTaskDetails(eventData.type, eventData.lecturer, eventData.eventLink);
+                    };
+        
+                    if (selectedDay) {
+                        selectedDay.appendChild(eventSquare);
+                    } else {
+                        console.error("selectedDay is not defined. Make sure a day is selected.");
+                    }
+        
+                    closeModal();
+                } else {
+                    console.error("Failed to save event");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
         }
+        
 
         function showTaskDetails(type, lecturer, link) {
             const taskModal = document.getElementById("taskDetails");
@@ -345,26 +394,6 @@
 
         window.onclick = function(event) {
             if (event.target.classList.contains("modal")) closeModal();
-        }
-
-        async function saveEvent(eventData) {
-            try {
-                const response = await fetch("http://localhost:8085/api/events/add", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(eventData)
-                });
-                
-                if (response.ok) {
-                    console.log("Event saved successfully");
-                } else {
-                    console.error("Failed to save event");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-            }
         }
 
         updateCalendar();
